@@ -1,0 +1,142 @@
+:root {
+  --bg-base: #0d1117;
+  --bg-surface: #141922;
+  --bg-surface-raised: #1b2230;
+  --bg-hover: #212938;
+  --border: #262e3d;
+  --text-primary: #e8edf4;
+  --text-muted: #8b95a5;
+  --text-faint: #566072;
+  --accent: #ff6b4a;
+  --accent-dim: #ff6b4a26;
+  --accent-2: #5eead4;
+  --accent-2-dim: #5eead426;
+  --danger: #f0654f;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--accent-dim);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------- presence dot ---------- */
+.presence-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  flex-shrink: 0;
+  position: relative;
+}
+.presence-dot.online {
+  background: var(--accent-2);
+  box-shadow: 0 0 0 0 var(--accent-2-dim);
+  animation: pulse 2.2s ease-out infinite;
+}
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(94, 234, 212, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(94, 234, 212, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(94, 234, 212, 0);
+  }
+}
+
+/* ---------- typing waveform ---------- */
+.typing-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 14px;
+}
+.typing-wave span {
+  width: 3px;
+  height: 5px;
+  border-radius: 2px;
+  background: var(--accent-2);
+  animation: wave 1s ease-in-out infinite;
+}
+.typing-wave span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.typing-wave span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.typing-wave span:nth-child(4) {
+  animation-delay: 0.36s;
+}
+@keyframes wave {
+  0%,
+  100% {
+    height: 5px;
+    opacity: 0.6;
+  }
+  50% {
+    height: 14px;
+    opacity: 1;
+  }
+}
+
+.message-row:hover .msg-menu-btn {
+  opacity: 1 !important;
+}
