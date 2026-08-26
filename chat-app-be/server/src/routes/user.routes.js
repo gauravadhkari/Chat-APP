@@ -15,7 +15,7 @@ router.get("/search", authMiddleware, async (req, res) => {
     }
 
     const users = await User.find({
-      username: {
+      name: {
         $regex: name,
         $options: "i",
       },
