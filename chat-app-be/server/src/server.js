@@ -12,7 +12,8 @@ connectDB();
 const server = http.createServer(app);
 const io = new Server(server , {
   cors : {
-    origin:"*",
+    origin:["https://localhost:5173","https://chat-app-zero-one7.vercel.app"],
+    credentials:true,
   },
 })
 io.use(socketAuth)

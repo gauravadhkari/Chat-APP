@@ -7,7 +7,10 @@ const conversationRoutes = require("./routes/conversation.routes")
 const messageRoutes = require("./routes/message.routes")
 const userRoutes = require("./routes/user.routes");
 const apiLimiter = require("./middlewares/rateLimit.middleware");
-app.use(cors())
+app.use(cors({
+  origin:"https://chat-app-zero-one7.vercel.app",
+  credentials: true,
+}));
 app.use(helmet());
 app.use(express.json({
   limit: "10kb",
