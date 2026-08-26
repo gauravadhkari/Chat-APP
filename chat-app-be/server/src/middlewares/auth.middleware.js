@@ -24,6 +24,15 @@ const authMiddleware =  async (req,res,next) => {
     next();
   }catch(error){
     console.log(error.message)
+    // jwt.verify throws JsonWebTokenError / TokenExpiredError for bad or
+    // expired tokens — that's a client auth problem (401), not a server
+    // problem (500). Only truly unexpected errors should be 500.
+    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success : false,
+        message : error.name === "TokenExpiredError" ? "Token expired..." : "Invalid token..."
+      })
+    }
     res.status(500).json({
       success : false,
       message : "Server Error..."

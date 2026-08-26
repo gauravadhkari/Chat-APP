@@ -1,5 +1,6 @@
 const Message = require("../models/message")
 const Conversation = require("../models/conversation")
+const User = require("../models/User")
 
 const sendMessage = async (req,res) => {
 
@@ -29,6 +30,30 @@ const sendMessage = async (req,res) => {
         message : "You're not part of this conversation..."
       })
     }
+
+    // Block check — kept in sync with the socket "sendMessage" handler so
+    // a blocked user can't route around the socket by hitting this REST
+    // endpoint directly.
+    const otherParticipantId = conversation.participants.find(
+      (participant) => participant.toString() !== senderId.toString()
+    );
+    const [currentUser, otherUser] = await Promise.all([
+      User.findById(senderId),
+      User.findById(otherParticipantId),
+    ]);
+    const hasBlocked = currentUser?.blockedUsers?.some(
+      (id) => id.toString() === otherParticipantId?.toString()
+    );
+    const isBlockedByOther = otherUser?.blockedUsers?.some(
+      (id) => id.toString() === senderId.toString()
+    );
+    if (hasBlocked || isBlockedByOther) {
+      return res.status(403).json({
+        success: false,
+        message: "You can not send messages to this User...",
+      });
+    }
+
     const message = await Message.create({
       conversation:conversationId,
       sender : senderId,
@@ -73,7 +98,7 @@ const getMessages = async (req,res) => {
     const message = await Message.find({
       conversation : conversationId,
     })
-    .populate("sender", "username email")
+    .populate("sender", "name email")
     .sort({createdAt : 1});
 
     res.status(200).json({

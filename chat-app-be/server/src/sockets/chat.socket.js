@@ -103,20 +103,21 @@ const registerChatSocket = (io) => {
           })
           return;
         }
-        const otherParticipant = await conversation.participants.find(
-          (participant) => participant.toString !== userId.toString()
+        const otherParticipant = conversation.participants.find(
+          (participant) => participant.toString() !== userId.toString()
         )
         const otherUser = await User.findById(otherParticipant);
-        const hasBlocked = await currentUser.blockedUsers.some(
+        const hasBlocked = currentUser.blockedUsers.some(
           (id) => id.toString() === otherParticipant.toString()
         )
-        const isBlockedByOther = await otherUser.blockedUsers.some(
+        const isBlockedByOther = otherUser.blockedUsers.some(
           (id) => id.toString() === userId.toString()
         )
         if(hasBlocked || isBlockedByOther){
           socket.emit("error", {
             message : "You can not send messages to this User..."
           })
+          return;
         }
         const isParticipant = conversation.participants.some(
           (participant) =>  participant.toString() === userId.toString()
@@ -184,6 +185,7 @@ const registerChatSocket = (io) => {
           socket.emit("error", {
             message : "You're not part of this conversation..."
           })
+          return;
         }
         message.deliveredAt = new Date();
 
@@ -225,6 +227,7 @@ const registerChatSocket = (io) => {
           socket.emit("error" , {
             message : "You're not part of this conversation..."
           })
+          return;
         }
         message.seenAt = new Date();
         await message.save();

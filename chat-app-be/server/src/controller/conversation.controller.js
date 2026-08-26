@@ -48,7 +48,7 @@ const createConversation = async (req, res) => {
       participants : {
       $all : [currentUserId , userId],
       },
-    }).populate("participants","username email");
+    }).populate("participants","name email");
 
     if(conversation){
       return res.status(401).json({
@@ -62,7 +62,7 @@ const createConversation = async (req, res) => {
     })
       conversation = await conversation.populate(
       "participants",
-      "username email"
+      "name email"
     );
     res.status(201).json({
       success : true,
@@ -85,8 +85,8 @@ const getMyConversation = async (req,res) => {
     const conversation = await Conversation.find({
       participants:userId,
     })
-    .populate("participants","username email")
-    .sort({updateAt : -1});
+    .populate("participants","name email")
+    .sort({updatedAt : -1}); // was "updateAt" — not a real field, sort was a no-op
     res.status(201).json({
       success : true,
       conversation

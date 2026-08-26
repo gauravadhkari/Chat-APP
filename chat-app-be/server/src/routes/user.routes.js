@@ -6,9 +6,9 @@ const authMiddleware = require("../middlewares/auth.middleware");
 
 router.get("/search", authMiddleware, async (req, res) => {
   try {
-    const { username } = req.query;
+    const { name } = req.query;
 
-    if (!username) {
+    if (!name) {
       return res.status(400).json({
         message: "Username is required",
       });
@@ -16,14 +16,14 @@ router.get("/search", authMiddleware, async (req, res) => {
 
     const users = await User.find({
       username: {
-        $regex: username,
+        $regex: name,
         $options: "i",
       },
       _id: {
         $ne: req.user._id,
       },
     })
-      .select("_id username email")
+      .select("_id name email")
       .limit(10);
 
     res.status(200).json({
