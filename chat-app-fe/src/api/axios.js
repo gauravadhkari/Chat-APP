@@ -1,9 +1,9 @@
 import axios from "axios";
 
-export const API_URL ="https://chat-app-2-98p2.onrender.com";
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const api = axios.create({
-  baseURL: `https://chat-app-2-98p2.onrender.com/api`,
+  baseURL: `${API_URL}/api`,   // <-- "/api" is added here already
 });
 
 // NOTE ON AUTH HEADER FORMAT
