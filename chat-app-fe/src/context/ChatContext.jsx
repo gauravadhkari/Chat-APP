@@ -210,11 +210,11 @@ export function ChatProvider({ children }) {
   );
 
   const emitTyping = useCallback(() => {
-    if (activeConversation?._id) socket?.emit("typing", { activeConversation._id });
+    if (activeConversation?._id) socket?.emit("typing",  activeConversation._id );
   }, [activeConversation, socket]);
 
   const emitStopTyping = useCallback(() => {
-    if (activeConversation?._id) socket?.emit("stopTyping", {activeConversation._id });
+    if (activeConversation?._id) socket?.emit("stopTyping", activeConversation._id );
   }, [activeConversation, socket]);
 
   return (
