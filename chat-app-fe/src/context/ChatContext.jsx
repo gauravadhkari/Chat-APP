@@ -165,8 +165,8 @@ export function ChatProvider({ children }) {
     };
 
     socket.on("newMessage", onNewMessage);
-    socket.on("typing", onTyping);
-    socket.on("stopTyping", onStopTyping);
+    socket.on("userTyping", onTyping);
+    socket.on("userStoppedTyping", onStopTyping);
     socket.on("messageDelivered", onMessageDelivered);
     socket.on("messageSeen", onMessageSeen);
     socket.on("messageEdited", onMessageEdited);
@@ -176,8 +176,8 @@ export function ChatProvider({ children }) {
 
     return () => {
       socket.off("newMessage", onNewMessage);
-      socket.off("typing", onTyping);
-      socket.off("stopTyping", onStopTyping);
+      socket.off("userTyping", onTyping);
+      socket.off("userStoppedTyping", onStopTyping);
       socket.off("messageDelivered", onMessageDelivered);
       socket.off("messageSeen", onMessageSeen);
       socket.off("messageEdited", onMessageEdited);
@@ -210,11 +210,11 @@ export function ChatProvider({ children }) {
   );
 
   const emitTyping = useCallback(() => {
-    if (activeConversation?._id) socket?.emit("typing", { conversationId: activeConversation._id });
+    if (activeConversation?._id) socket?.emit("typing", { activeConversation._id });
   }, [activeConversation, socket]);
 
   const emitStopTyping = useCallback(() => {
-    if (activeConversation?._id) socket?.emit("stopTyping", { conversationId: activeConversation._id });
+    if (activeConversation?._id) socket?.emit("stopTyping", {activeConversation._id });
   }, [activeConversation, socket]);
 
   return (

@@ -60,12 +60,14 @@ const registerChatSocket = (io) => {
     socket.on("typing", (conversationId) => {
       socket.to(conversationId).emit("userTyping", {
         userId : socket.userId,
+        conversationId
       })
     })
     //              ///USER STOPPED TYPING - TYPING INDICATOR///              //
     socket.on("stopTyping", (conversationId) => {
       socket.to(conversationId).emit("userStoppedTyping", {
         userId : socket.userId,
+        conversationId
       })
     })
     //                ///USER SEND MESSAGE///               //
