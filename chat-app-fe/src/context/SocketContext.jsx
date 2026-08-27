@@ -38,7 +38,13 @@ export function SocketProvider({ children }) {
         return next;
       });
     });
-
+    socket.on("onlineUsers", ({ userIds }) => {
+    setOnlineUserIds((prev) => {
+    const next = new Set(prev);
+    userIds.forEach((id) => next.add(id));
+    return next;
+    });
+  });
     return () => {
       socket.disconnect();
       socketRef.current = null;

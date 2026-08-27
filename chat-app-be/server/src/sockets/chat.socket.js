@@ -23,6 +23,10 @@ const registerChatSocket = (io) => {
       userId : socket.userId,
     })
     }
+    const alreadyOnlineUserIds = Array.from(onlineUsers.keys()).filter(
+    (id) => id !== userId
+    );
+    socket.emit("onlineUsers", { userIds: alreadyOnlineUserIds });
     
     //              ///USER JOINED CONVERSATION///                 //
     socket.on("joinConversation", async (conversationId) => {
