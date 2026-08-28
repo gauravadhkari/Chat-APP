@@ -9,7 +9,7 @@ import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
 
-export default function ChatWindow() {
+export default function ChatWindow({ onBack }) {
   const { user } = useAuth();
   const {
     activeConversation,
@@ -38,7 +38,7 @@ export default function ChatWindow() {
   if (!activeConversation) {
     return (
       <div
-        className="glass-panel"
+        className="glass-panel chat-panel"
         style={{
           flex: 1,
           display: "flex",
@@ -88,10 +88,11 @@ export default function ChatWindow() {
 
   return (
     <div
-      className="glass-panel"
+      className="glass-panel chat-panel"
       style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, borderRadius: 26 }}
     >
       <div
+        className="chat-header"
         style={{
           display: "flex",
           alignItems: "center",
@@ -102,6 +103,14 @@ export default function ChatWindow() {
           background: "rgba(255,255,255,0.03)",
         }}
       >
+        <button
+          onClick={onBack}
+          aria-label="Back to conversations"
+          className="btn back-btn"
+          style={{ width: 34, height: 34, borderRadius: 12, flexShrink: 0, fontSize: 16 }}
+        >
+          ‹
+        </button>
         <Avatar name={otherName} online={isOtherOnline} size={40} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, letterSpacing: "-0.01em" }}>

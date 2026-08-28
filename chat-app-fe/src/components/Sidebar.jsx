@@ -13,9 +13,8 @@ export default function Sidebar() {
 
   return (
     <div
-      className="glass-panel"
+      className="glass-panel sidebar-panel"
       style={{
-        width: 330,
         flexShrink: 0,
         display: "flex",
         flexDirection: "column",
