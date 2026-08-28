@@ -15,29 +15,29 @@ export default function ConversationItem({ conversation, active, onClick }) {
   const last = conversation.lastMessage;
 
   return (
-    <button
-      className="conversation-item"
-      onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        width: "100%",
-        textAlign: "left",
-        padding: "10px 14px",
-        borderRadius: 12,
-        background: active ? "var(--bg-hover)" : "transparent",
-        border: "none",
-      }}
-    >
-      <div className="avatar-wrap">
-        <Avatar name={name} online={online} size={42} />
-      </div>
+    <button onClick={onClick} className={`convo-item ${active ? "active" : ""}`}>
+      <Avatar name={name} online={online} size={44} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-          <span style={{ fontWeight: 600, fontSize: 14.5, fontFamily: "var(--font-display)" }}>{name}</span>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+          <span
+            style={{
+              fontWeight: 600,
+              fontSize: 14.5,
+              fontFamily: "var(--font-display)",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {name}
+          </span>
           {last && (
-            <span style={{ fontSize: 10.5, color: "var(--text-faint)", fontFamily: "var(--font-mono)", flexShrink: 0 }}>
+            <span
+              style={{
+                fontSize: 10.5,
+                color: "var(--text-faint)",
+                fontFamily: "var(--font-mono)",
+                flexShrink: 0,
+              }}
+            >
               {formatTime(last.createdAt)}
             </span>
           )}
@@ -45,10 +45,11 @@ export default function ConversationItem({ conversation, active, onClick }) {
         <div
           style={{
             fontSize: 12.5,
-            color: "var(--text-muted)",
+            color: last ? "var(--text-muted)" : "var(--text-faint)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
+            marginTop: 2,
           }}
         >
           {last ? last.content : "No messages yet"}

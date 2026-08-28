@@ -13,6 +13,12 @@ export default function UserSearchModal({ onClose }) {
   const debounceRef = useRef(null);
 
   useEffect(() => {
+    const onEsc = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onEsc);
+    return () => document.removeEventListener("keydown", onEsc);
+  }, [onClose]);
+
+  useEffect(() => {
     clearTimeout(debounceRef.current);
     if (!query.trim()) {
       setResults([]);
@@ -56,78 +62,63 @@ export default function UserSearchModal({ onClose }) {
   };
 
   return (
-    <div
-      onClick={onClose}
-      className="animate-backdrop-in"
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(6,8,12,0.6)",
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "center",
-        paddingTop: "12vh",
-        zIndex: 50,
-      }}
-    >
+    <div className="modal-backdrop" onClick={onClose}>
       <div
+        className="glass-panel"
         onClick={(e) => e.stopPropagation()}
-        className="animate-modal-in"
         style={{
-          width: 420,
+          width: 440,
           maxWidth: "90vw",
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border)",
-          borderRadius: 16,
-          padding: 18,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
+          borderRadius: 22,
+          padding: 20,
+          animation: "pop-in .18s ease-out",
         }}
       >
-        <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 12 }}>
+        <div
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            fontSize: 17,
+            marginBottom: 4,
+            letterSpacing: "-0.02em",
+          }}
+        >
           Start a conversation
         </div>
+        <div style={{ fontSize: 12.5, color: "var(--text-faint)", marginBottom: 14 }}>
+          Search someone by name to open a new chat.
+        </div>
+
         <input
           autoFocus
+          className="field-input"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by name…"
-          style={{
-            width: "100%",
-            background: "var(--bg-surface-raised)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            padding: "10px 14px",
-            fontSize: 14,
-            color: "var(--text-primary)",
-          }}
         />
 
         <div style={{ marginTop: 12, maxHeight: 320, overflowY: "auto" }}>
-          {loading && <div style={{ color: "var(--text-faint)", fontSize: 13, padding: 8 }}>Searching…</div>}
-          {error && <div style={{ color: "var(--danger)", fontSize: 13, padding: 8 }}>{error}</div>}
+          {loading && <div style={{ color: "var(--text-faint)", fontSize: 13, padding: 10 }}>Searching…</div>}
+          {error && <div style={{ color: "var(--danger)", fontSize: 13, padding: 10 }}>{error}</div>}
           {!loading && !error && query && results.length === 0 && (
-            <div style={{ color: "var(--text-faint)", fontSize: 13, padding: 8 }}>No users found.</div>
+            <div style={{ color: "var(--text-faint)", fontSize: 13, padding: 10 }}>No users found.</div>
           )}
           {results.map((u) => (
-            <button
-              key={u._id}
-              onClick={() => handleSelect(u)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                width: "100%",
-                textAlign: "left",
-                padding: "9px 8px",
-                background: "transparent",
-                border: "none",
-                borderRadius: 10,
-              }}
-            >
-              <Avatar name={displayName(u)} size={34} />
-              <div>
+            <button key={u._id} onClick={() => handleSelect(u)} className="result-row">
+              <Avatar name={displayName(u)} size={36} />
+              <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>{displayName(u)}</div>
-                <div style={{ fontSize: 12, color: "var(--text-faint)" }}>{u.email}</div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "var(--text-faint)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {u.email}
+                </div>
               </div>
             </button>
           ))}

@@ -44,14 +44,16 @@ export default function Signup() {
           onChange={(v) => setForm((f) => ({ ...f, password: v }))}
           required
         />
-        {(localError || error) && <div style={{ color: "var(--danger)", fontSize: 13 }}>{localError || error}</div>}
+        {(localError || error) && (
+          <div style={{ color: "var(--danger)", fontSize: 13 }}>{localError || error}</div>
+        )}
         <button type="submit" disabled={loading} style={primaryBtn}>
           {loading ? "Creating account…" : "Create account"}
         </button>
       </form>
       <div style={{ marginTop: 18, fontSize: 13.5, color: "var(--text-muted)" }}>
         Already have an account?{" "}
-        <Link to="/login" style={{ color: "var(--accent-2)" }}>
+        <Link to="/login" style={{ color: "var(--accent)", fontWeight: 600 }}>
           Sign in
         </Link>
       </div>

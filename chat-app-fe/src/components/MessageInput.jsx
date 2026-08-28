@@ -11,6 +11,14 @@ export default function MessageInput({ disabled = false, disabledReason = "" }) 
 
   useEffect(() => () => clearTimeout(stopTypingTimeout.current), []);
 
+  // auto-grow the textarea
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
+  }, [value]);
+
   const handleChange = (e) => {
     setValue(e.target.value);
     emitTyping();
@@ -53,12 +61,11 @@ export default function MessageInput({ disabled = false, disabledReason = "" }) 
   if (disabled) {
     return (
       <div
+        className="glass"
         style={{
           margin: "12px 20px 18px",
-          padding: "12px 16px",
+          padding: "13px 16px",
           borderRadius: 18,
-          background: "var(--bg-surface-raised)",
-          border: "1px solid var(--border)",
           color: "var(--text-faint)",
           fontSize: 13.5,
           textAlign: "center",
@@ -69,73 +76,81 @@ export default function MessageInput({ disabled = false, disabledReason = "" }) 
     );
   }
 
+  const canSend = Boolean(value.trim());
+
   return (
-    <form
-      onSubmit={submit}
-      style={{ display: "flex", gap: 10, padding: "12px 20px 18px", position: "relative" }}
-    >
-      <button
-        type="button"
-        className="emoji-toggle-btn"
-        onClick={() => setPickerOpen((v) => !v)}
-        aria-label="Add emoji"
+    <form onSubmit={submit} style={{ padding: "12px 20px 18px", position: "relative" }}>
+      <div
+        className="glass"
         style={{
-          background: "var(--bg-surface-raised)",
-          border: "1px solid var(--border)",
-          borderRadius: 14,
-          width: 40,
-          flexShrink: 0,
-          fontSize: 18,
-          color: "var(--text-muted)",
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 8,
+          padding: 8,
+          borderRadius: 22,
         }}
       >
-        🙂
-      </button>
+        <button
+          type="button"
+          onClick={() => setPickerOpen((v) => !v)}
+          aria-label="Add emoji"
+          className="btn"
+          style={{
+            width: 38,
+            height: 38,
+            flexShrink: 0,
+            fontSize: 18,
+            borderRadius: 14,
+            background: pickerOpen ? "var(--glass-hover)" : "transparent",
+          }}
+        >
+          🙂
+        </button>
 
-      {pickerOpen && (
-        <EmojiPicker
-          onSelect={(emoji) => insertEmoji(emoji)}
-          onClose={() => setPickerOpen(false)}
+        {pickerOpen && (
+          <EmojiPicker onSelect={(emoji) => insertEmoji(emoji)} onClose={() => setPickerOpen(false)} />
+        )}
+
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Write a message…"
+          rows={1}
+          style={{
+            flex: 1,
+            resize: "none",
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            padding: "9px 4px",
+            fontSize: 14.5,
+            lineHeight: 1.45,
+            color: "var(--text-primary)",
+            maxHeight: 140,
+          }}
         />
-      )}
 
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        placeholder="Write a message…"
-        rows={1}
-        style={{
-          flex: 1,
-          resize: "none",
-          background: "var(--bg-surface-raised)",
-          border: "1px solid var(--border)",
-          borderRadius: 18,
-          padding: "10px 16px",
-          fontSize: 14.5,
-          color: "var(--text-primary)",
-          maxHeight: 120,
-        }}
-      />
-      <button
-        type="submit"
-        className="send-btn"
-        disabled={!value.trim()}
-        style={{
-          background: value.trim() ? "var(--accent)" : "var(--bg-surface-raised)",
-          color: value.trim() ? "#1a0d08" : "var(--text-faint)",
-          border: "none",
-          borderRadius: 18,
-          padding: "0 20px",
-          fontWeight: 600,
-          fontSize: 14,
-          fontFamily: "var(--font-display)",
-          transition: "background .15s",
-        }}
-      >
-        Send
-      </button>
+        <button
+          type="submit"
+          disabled={!canSend}
+          aria-label="Send message"
+          className="btn-primary"
+          style={{
+            height: 38,
+            padding: "0 20px",
+            fontSize: 14,
+            flexShrink: 0,
+            borderRadius: 14,
+          }}
+        >
+          Send
+        </button>
+      </div>
+      <div style={{ fontSize: 10.5, color: "var(--text-faint)", marginTop: 6, paddingLeft: 12 }}>
+        Enter to send · Shift + Enter for a new line
+      </div>
     </form>
   );
 }

@@ -5,7 +5,7 @@ import Sidebar from "../components/Sidebar";
 export default function Chat() {
   return (
     <ChatProvider>
-      <div style={{ display: "flex", height: "100%" }}>
+      <div className="app-shell">
         <Sidebar />
         <ChatWindow />
       </div>

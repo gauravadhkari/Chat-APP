@@ -1,6 +1,15 @@
 export default function TypingIndicator({ name }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 4px 4px 2px" }}>
+    <div
+      className="glass"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 9,
+        padding: "5px 12px",
+        borderRadius: 999,
+      }}
+    >
       <span className="typing-wave">
         <span />
         <span />

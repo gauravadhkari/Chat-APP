@@ -38,20 +38,41 @@ export default function ChatWindow() {
   if (!activeConversation) {
     return (
       <div
+        className="glass-panel"
         style={{
           flex: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "var(--text-faint)",
           flexDirection: "column",
           gap: 10,
+          borderRadius: 26,
+          textAlign: "center",
+          padding: 24,
         }}
       >
-        <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-muted)" }}>
+        <div
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: 22,
+            background: "var(--gradient-primary)",
+            boxShadow: "var(--shadow-glow)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 28,
+            marginBottom: 6,
+          }}
+        >
+          💬
+        </div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: "-0.02em" }}>
           Pick a conversation
         </div>
-        <div style={{ fontSize: 13.5 }}>Or search a username to start a new one.</div>
+        <div style={{ fontSize: 13.5, color: "var(--text-muted)" }}>
+          Or search a username to start a new one.
+        </div>
       </div>
     );
   }
@@ -67,9 +88,8 @@ export default function ChatWindow() {
 
   return (
     <div
-      key={activeConversation._id}
-      className="animate-chat-fade"
-      style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}
+      className="glass-panel"
+      style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, borderRadius: 26 }}
     >
       <div
         style={{
@@ -79,60 +99,45 @@ export default function ChatWindow() {
           padding: "16px 20px",
           borderBottom: "1px solid var(--border)",
           position: "relative",
+          background: "rgba(255,255,255,0.03)",
         }}
       >
-        <Avatar name={otherName} online={isOtherOnline} size={38} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15.5 }}>{otherName}</div>
-          <div style={{ fontSize: 12, color: isOtherOnline ? "var(--accent-2)" : "var(--text-faint)" }}>
-            {isOtherOnline ? "Online" : "Offline"}
+        <Avatar name={otherName} online={isOtherOnline} size={40} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, letterSpacing: "-0.01em" }}>
+            {otherName}
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              color: isOtherOnline ? "#34d399" : "var(--text-faint)",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            {otherTyping ? "typing…" : isOtherOnline ? "Online" : "Offline"}
           </div>
         </div>
 
         <button
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Conversation options"
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: "50%",
-            border: "1px solid var(--border)",
-            background: "var(--bg-surface-raised)",
-            color: "var(--text-muted)",
-          }}
+          className="btn"
+          style={{ width: 34, height: 34, borderRadius: "50%", color: "var(--text-muted)" }}
         >
           ⋯
         </button>
 
         {menuOpen && (
-          <div
-            style={{
-              position: "absolute",
-              top: 54,
-              right: 20,
-              background: "var(--bg-surface-raised)",
-              border: "1px solid var(--border)",
-              borderRadius: 10,
-              overflow: "hidden",
-              zIndex: 5,
-              minWidth: 140,
-            }}
-          >
+          <div className="menu-pop" style={{ position: "absolute", top: 58, right: 20, zIndex: 5, minWidth: 150 }}>
             <button
+              className="menu-item"
+              style={{ color: isBlocked ? "var(--accent)" : "var(--danger)" }}
               onClick={async () => {
                 setMenuOpen(false);
                 if (isBlocked) await unblockUser(otherId);
                 else await blockUser(otherId);
-              }}
-              style={{
-                display: "block",
-                width: "100%",
-                textAlign: "left",
-                padding: "10px 14px",
-                background: "transparent",
-                border: "none",
-                fontSize: 13,
-                color: isBlocked ? "var(--accent-2)" : "var(--danger)",
               }}
             >
               {isBlocked ? "Unblock user" : "Block user"}
@@ -144,10 +149,10 @@ export default function ChatWindow() {
       {isBlocked && (
         <div
           style={{
-            padding: "8px 20px",
+            padding: "9px 20px",
             fontSize: 12.5,
             color: "var(--danger)",
-            background: "#f0654f14",
+            background: "rgba(251,113,133,0.1)",
             borderBottom: "1px solid var(--border)",
           }}
         >
@@ -169,13 +174,12 @@ export default function ChatWindow() {
           <button
             onClick={loadMoreMessages}
             disabled={loadingMessages}
+            className="btn"
             style={{
               alignSelf: "center",
               marginBottom: 14,
-              background: "var(--bg-surface-raised)",
-              border: "1px solid var(--border)",
-              borderRadius: 20,
-              padding: "6px 16px",
+              borderRadius: 999,
+              padding: "7px 18px",
               fontSize: 12.5,
               color: "var(--text-muted)",
             }}
@@ -192,22 +196,7 @@ export default function ChatWindow() {
           lastDay = day;
           return (
             <div key={m._id} style={{ display: "flex", flexDirection: "column" }}>
-              {showDivider && (
-                <div
-                  style={{
-                    alignSelf: "center",
-                    fontSize: 11,
-                    color: "var(--text-faint)",
-                    fontFamily: "var(--font-mono)",
-                    margin: "8px 0 14px",
-                    padding: "2px 10px",
-                    background: "var(--bg-surface)",
-                    borderRadius: 10,
-                  }}
-                >
-                  {day}
-                </div>
-              )}
+              {showDivider && <div className="day-chip">{day}</div>}
               <MessageBubble message={m} isOwn={isOwn} />
             </div>
           );
@@ -222,7 +211,9 @@ export default function ChatWindow() {
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ minHeight: 26, padding: "0 20px" }}>{otherTyping && <TypingIndicator name={otherName} />}</div>
+      <div style={{ minHeight: 28, padding: "0 20px" }}>
+        {otherTyping && <TypingIndicator name={otherName} />}
+      </div>
 
       <MessageInput />
     </div>
