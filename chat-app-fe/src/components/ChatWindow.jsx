@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import { useSocket } from "../context/SocketContext";
-import { getOtherParticipant } from "../../../chat-app-fe/src/utils/conversation";
-import { displayName, formatDay } from "../../../chat-app-fe/src/utils/format";
+import { getOtherParticipant } from "../utils/conversation";
+import { displayName, formatDay } from "../utils/format";
 import Avatar from "./Avatar";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
@@ -66,7 +66,11 @@ export default function ChatWindow() {
   let lastDay = null;
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+    <div
+      key={activeConversation._id}
+      className="animate-chat-fade"
+      style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}
+    >
       <div
         style={{
           display: "flex",

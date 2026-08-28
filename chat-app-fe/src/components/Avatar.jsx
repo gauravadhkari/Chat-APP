@@ -1,4 +1,4 @@
-import { initials } from "../../../chat-app-fe/src/utils/format";
+import { initials } from "../utils/format";
 
 export default function Avatar({ name, online, size = 40 }) {
   return (

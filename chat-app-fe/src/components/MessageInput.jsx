@@ -76,6 +76,7 @@ export default function MessageInput({ disabled = false, disabledReason = "" }) 
     >
       <button
         type="button"
+        className="emoji-toggle-btn"
         onClick={() => setPickerOpen((v) => !v)}
         aria-label="Add emoji"
         style={{
@@ -119,6 +120,7 @@ export default function MessageInput({ disabled = false, disabledReason = "" }) 
       />
       <button
         type="submit"
+        className="send-btn"
         disabled={!value.trim()}
         style={{
           background: value.trim() ? "var(--accent)" : "var(--bg-surface-raised)",

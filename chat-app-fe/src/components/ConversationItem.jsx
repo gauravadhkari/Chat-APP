@@ -1,7 +1,7 @@
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
-import { getOtherParticipant } from "../../../chat-app-fe/src/utils/conversation";
-import { displayName, formatTime } from "../../../chat-app-fe/src/utils/format";
+import { getOtherParticipant } from "../utils/conversation";
+import { displayName, formatTime } from "../utils/format";
 import Avatar from "./Avatar";
 
 export default function ConversationItem({ conversation, active, onClick }) {
@@ -16,6 +16,7 @@ export default function ConversationItem({ conversation, active, onClick }) {
 
   return (
     <button
+      className="conversation-item"
       onClick={onClick}
       style={{
         display: "flex",
@@ -29,7 +30,9 @@ export default function ConversationItem({ conversation, active, onClick }) {
         border: "none",
       }}
     >
-      <Avatar name={name} online={online} size={42} />
+      <div className="avatar-wrap">
+        <Avatar name={name} online={online} size={42} />
+      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
           <span style={{ fontWeight: 600, fontSize: 14.5, fontFamily: "var(--font-display)" }}>{name}</span>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import api from "../../../chat-app-fe/src/api/axios";
+import api from "../api/axios";
 import { useChat } from "../context/ChatContext";
-import { displayName } from "../../../chat-app-fe/src/utils/format";
+import { displayName } from "../utils/format";
 import Avatar from "./Avatar";
 
 export default function UserSearchModal({ onClose }) {
@@ -58,6 +58,7 @@ export default function UserSearchModal({ onClose }) {
   return (
     <div
       onClick={onClose}
+      className="animate-backdrop-in"
       style={{
         position: "fixed",
         inset: 0,
@@ -71,6 +72,7 @@ export default function UserSearchModal({ onClose }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        className="animate-modal-in"
         style={{
           width: 420,
           maxWidth: "90vw",

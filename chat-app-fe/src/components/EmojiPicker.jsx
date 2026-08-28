@@ -15,6 +15,7 @@ export default function EmojiPicker({ onSelect, onClose }) {
   return (
     <div
       ref={ref}
+      className="animate-picker-in"
       style={{
         position: "absolute",
         bottom: "calc(100% + 8px)",

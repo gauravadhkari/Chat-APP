@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formatTime } from "../../../chat-app-fe/src/utils/format";
+import { formatTime } from "../utils/format";
 import { useChat } from "../context/ChatContext";
 
 export default function MessageBubble({ message, isOwn }) {

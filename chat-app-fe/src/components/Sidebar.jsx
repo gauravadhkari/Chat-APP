@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
-import { displayName } from "../../../chat-app-fe/src/utils/format";
+import { displayName } from "../utils/format";
 import Avatar from "./Avatar";
 import ConversationItem from "./ConversationItem";
 import UserSearchModal from "./UserSearchModal";
@@ -27,6 +27,7 @@ export default function Sidebar() {
           Wire
         </div>
         <button
+          className="new-convo-btn"
           onClick={() => setSearchOpen(true)}
           title="New conversation"
           style={{
