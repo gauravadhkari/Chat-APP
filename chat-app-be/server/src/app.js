@@ -21,6 +21,9 @@ app.get("/", (req,res) => {
     message:"Chat Api is running...."
   })
 })
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", time: new Date().toISOString() });
+});
 app.get("/test", (req, res) => {
   res.json({
     message: "App is working"
