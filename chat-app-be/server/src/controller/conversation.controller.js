@@ -44,10 +44,9 @@ const createConversation = async (req, res) => {
         message : "You can not create conversation with this user..."
       })
     }
-    let conversation = await Conversation.findOne({
-      participants : {
-      $all : [currentUserId , userId],
-      },
+    const conversationKey = [currentUserId.toString() , userId.toString()].sort().join("_");
+    const conversation = await Conversation.findOne({
+      conversationKey,
     }).populate("participants","name email");
 
     if(conversation){
@@ -59,6 +58,7 @@ const createConversation = async (req, res) => {
     }
      conversation = await Conversation.create({
       participants : [currentUserId , userId],
+      conversationKey,
     })
       conversation = await conversation.populate(
       "participants",

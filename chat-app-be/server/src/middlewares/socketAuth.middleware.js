@@ -1,4 +1,5 @@
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
 const socketAuth = async (socket,next) => {
   try{
@@ -7,6 +8,10 @@ const socketAuth = async (socket,next) => {
       return next(new Error("Authentication Token Required.."))
     }
     const decoded = await jwt.verify(token,process.env.JWT_SECRET);
+    const userExists = await User.exists({_id : decoded.userId});
+    if(!userExists){
+      next(new Error("User not Exists!"))
+    }
     socket.userId = decoded.userId;
     next();
   }catch(error){

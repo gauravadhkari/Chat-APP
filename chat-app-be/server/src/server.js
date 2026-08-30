@@ -7,7 +7,15 @@ const { Server } = require("socket.io");
 const registerChatSocket = require("./sockets/chat.socket");
 const socketAuth = require("./middlewares/socketAuth.middleware")
 const PORT = process.env.PORT || 3000;
-connectDB();
+
+const requiredEnv = ["JWT_SECRET" , "MONGO_URI"]
+
+for(const key of requiredEnv){
+  if(!process.env[key]){
+    console.error(`${key} is missing!`);
+    process.exit(1);
+  }
+}
 
 const server = http.createServer(app);
 const io = new Server(server , {
@@ -18,7 +26,15 @@ const io = new Server(server , {
 })
 io.use(socketAuth)
 registerChatSocket(io);
-
+const startServer = async () => {
+try{
+ await connectDB();
 server.listen(PORT , () => {
   console.log(`Server is running on port ${PORT} `)
 });
+} catch(error){
+  console.error(error.message);
+  process.exit(1);
+}
+}
+startServer();

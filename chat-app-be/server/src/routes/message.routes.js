@@ -3,17 +3,24 @@ const { sendMessage, getMessages } = require("../controller/message.controller")
 const protect = require("../middlewares/auth.middleware");
 const Message = require("../models/message.js");
 const Conversation = require("../models/conversation.js");
+const { isValidObjectId } = require("mongoose");
 const router = express.Router();
 
 router.post("/",protect,sendMessage)
 router.get("/:conversationId",protect, async(req,res) => {
   try {
     const { conversationId } = req.params;
+
+    const limit = Math.min(parseInt(req.query.limit) || 20,50);
     
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    
-    const skip = (page - 1) * limit;
+    const cursor = req.query.cursor;
+
+    if(!isValidObjectId(conversationId)){
+      return res.status(400).json({
+        success : false,
+        message : "Invalid Conversation Id!!"
+      })
+    }
 
     const conversation = await Conversation.findById(conversationId);
     if(!conversation){
@@ -30,19 +37,31 @@ router.get("/:conversationId",protect, async(req,res) => {
         message : "You're not part of this conversation.."
       })
     }
-    const message = await Message.find({conversation : conversationId},)
+    const query = {
+      conversation : conversationId,
+    }
+    if(cursor){
+      const cursorDate = new Date(cursor);
+      if(isNaN(cursorDate.getTime())){
+        return res.status(400).json({
+          success : false,
+          message : "Invalid Cursor!"
+        })
+      }
+      query.createdAt = {
+        $lt : cursorDate
+      };
+    }
+    const message = await Message.find(query)
     .sort({ createdAt : -1 })
-    .skip(skip)
     .limit(limit);
-
+    
+    const nextCursor = message.length === limit ? message[message.length - 1].createdAt : null;
     const totalMessages = await Message.countDocuments({ conversation : conversationId});
     res.status(200).json({
       success : true,
       message,
-      page,
-      limit,
-      totalMessages,
-      hasMore : skip + message.length < totalMessages,
+      nextCursor,
     })
   }catch(error){
     console.log(error.message);

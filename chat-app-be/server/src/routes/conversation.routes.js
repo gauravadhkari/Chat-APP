@@ -17,43 +17,166 @@ router.post("/",protect,createConversation);
 router.get("/",protect,async (req,res) => {
   try{
     const userId = req.user._id;
+    const conversations = await Conversation.aggregate([
+      {
+        $match : {
+          participants : userId
+        }
+      },
+      {
+        $lookup : {
+          from : "users",
+          localField : "participants",
+          foreignField : "_id",
+          as :"particpants"
+        }
+      },
+      {
+        $lookup : {
+          from : "messages",
 
-    const conversations = await Conversation.find({participants : userId})
-    .populate("participants" , "name email")
-    .sort({updatedAt : -1})
-    
-    const result = await Promise.all(
-      conversations.map( async (conversation) => {
-        
-        const lastMessage = await Message.findOne({
-          conversation : conversation._id,
-        })
-        .sort({ createdAt : -1})
-        .populate("sender", "name");
+          let : {
+            conversationId : "$_id"
+          },
 
-        // BUG FIX: this was querying the Conversation model with
-        // Message-shaped fields ("conversation"/"sender"/"seenAt" don't
-        // exist on Conversation), which always returned 0. Unread counts
-        // need to come from the Message model.
-        const unreadCounts = await Message.countDocuments({
-          conversation : conversation._id,
-          sender : {
-          $ne : userId,
-           },
-          seenAt : null
-          });
-        return {
-          ...conversation.toObject(),
-          lastMessage,
-          unreadCounts
-        };
-      })
-    );
+          pipeline : [
+            {
+              $match : {
+                $expr : {
+                  $eq : [
+                    "$conversation",
+                    "$$conversationId"
+                   ]
+                }
+              }
+            },
+            {
+              $sort : {
+                createdAt : -1,
+              }
+            },
+            {
+              $limit : 1
+            },
 
+            {
+              $lookup : {
+                from : "users",
+                localField : "sender",
+                foreignField : "_id",
+                as : "sender"
+              }
+            },
+
+            {
+              $unwind : {
+                path : "$sender",
+                preserveNullAndEmptyArrays : true
+              }
+            },
+
+            {
+              $project : {
+                content : 1,
+                conversation : 1,
+                createdAt : 1,
+                deliveredAt : 1,
+                seenAt : 1,
+
+                "sender._id" : 1,
+                "sender.name" : 1,
+              }
+            }
+          ],
+          as : "lastMessage"
+        }
+      },
+      {
+        $set : {
+          lastMessage : {
+            $arrayElemAt : [
+              "lastMessage",
+              0
+            ]
+          }
+        }
+      },
+
+      {
+        $lookup : {
+          from : "messages",
+
+          let : {
+            conversationId : "$_id"
+          },
+
+          pipeline : [
+            {
+              $match : {
+                $expr : {
+                  $and : [
+                    {
+                      $eq : [
+                        "$conversation",
+                        "$$conversationId"
+                      ]
+                    },
+                    {
+                      $ne : [
+                        "sender",
+                        userId
+                      ]
+                    },
+                    {
+                      $eq : [
+                        "seenAt",
+                        null
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              $count : "count"
+            }
+          ],
+           as : "unreadData"
+        }
+      },
+      {
+        $set : {
+          unreadCounts : {
+            $ifNull : [
+              {
+                $arrayElemAt : [
+                  "$unreadData.count",
+                  0
+                ]
+              },
+              0
+            ]
+          }
+        }
+      },
+      {
+        $project : {
+          unreadData : 0,
+          "participants.password" : 0,
+          "participants.blockedUsers" : 0,
+        }
+      },
+      {
+        $sort : {
+          updatedAt : -1
+        }
+      }
+    ]);
     res.status(200).json({
       success : true,
-      conversations : result,
+      conversations
     });
+    
   }catch(error){
     console.error(error);
     res.status(500).json({

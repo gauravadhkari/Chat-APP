@@ -13,10 +13,21 @@ router.get("/search", authMiddleware, async (req, res) => {
         message: "Username is required",
       });
     }
-
+    function escapeRegex(text) {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+    const searchName = name.trim();
+    if(searchName.length > 50){
+      return res.status(400).json({
+        success : "false",
+        message : "Invalid Name!"
+      })
+    }
+    const safeName = escapeRegex(searchName);
+    
     const users = await User.find({
       name: {
-        $regex: name,
+        $regex: safeName,
         $options: "i",
       },
       _id: {

@@ -2,6 +2,7 @@ const Message = require("../models/message");
 const Conversation = require("../models/conversation");
 const User = require("../models/User");
 const { isValidObjectId, isValidMessageContent } = require("../utils/validation");
+const socketRateLimiter = require("../utils/socketRateLimiter");
 
 const onlineUsers =new Map();
 
@@ -57,14 +58,66 @@ const registerChatSocket = (io) => {
      }
     });
     //             ///USER TYPING - TYPING INDICATOR///                     //
-    socket.on("typing", (conversationId) => {
+    socket.on("typing", async (conversationId) => {
+
+      const allowed = socketRateLimiter(
+        socket.userId.toString(),
+        "typing",
+        20,
+        5000
+      );
+      if(!allowed){
+        return;
+      }
+      if(!isValidObjectId(conversationId)){
+        socket.emit("error", {
+          message : "Invalid Object Id!"
+        })
+        return ;
+      }
+      const conversation = await Conversation.findById(conversationId);
+      if(!conversation){
+        socket.emit("error",{
+          message : "Conversation Not Found!"
+        })
+        return;
+      }
+      const isParticipant = conversation.participants.some(
+        (participant) => participant.toString() === socket.userId.toString()
+      )
+      if(!isParticipant){
+        socket.emit("error", {
+          message : "You're not part of this conversation!"
+        });
+        return;
+      }
       socket.to(conversationId).emit("userTyping", {
         userId : socket.userId,
         conversationId
       })
     })
     //              ///USER STOPPED TYPING - TYPING INDICATOR///              //
-    socket.on("stopTyping", (conversationId) => {
+    socket.on("stopTyping", async (conversationId) => {
+      if(!isValidObjectId(conversationId)){
+        socket.emit("error", {
+          message : "Invalid Id!"
+        })
+        return;
+      }
+      const conversation = await Conversation.findById(conversationId);
+      if(!conversation){
+        socket.emit("error", {
+          message : "Conversation Not Found!"
+        })
+        return;
+      }
+      const isParticipant = conversation.participants.some( (participant) => 
+      participant.toString() === socket.userId.toString());
+      if(!isParticipant){
+        socket.emit("error",{
+          message : "You're not part of this conversation!"
+        })
+      }
       socket.to(conversationId).emit("userStoppedTyping", {
         userId : socket.userId,
         conversationId
@@ -73,6 +126,18 @@ const registerChatSocket = (io) => {
     //                ///USER SEND MESSAGE///               //
     socket.on("sendMessage", async (data) => {
       try{
+        const allowed = socketRateLimiter(
+          socket.userId.toString(),
+          "sendMessage",
+          15,
+          10000
+        );
+        if(!allowed){
+          socket.emit("error", {
+            message : "You're sending messages too quickly"
+          })
+          return;
+        }
         console.log(data);
         const {conversationId , content } = data;
         console.log(content);
@@ -138,7 +203,11 @@ const registerChatSocket = (io) => {
           conversation : conversationId ,
           sender : userId,
           content,
-        })
+        });
+        await Conversation.findByIdAndUpdate(conversationId , {
+          lastMessageAt : message.createdAt,
+          lastMessage : message._id,
+        });
         io.to(conversationId).emit("newMessage",message);
       }catch(error){
         console.error(error)
@@ -193,6 +262,15 @@ const registerChatSocket = (io) => {
           })
           return;
         }
+        if(message.sender.toString() === socket.userId.toString()){
+          socket.emit("error", {
+            message : "Not allowed by Sender!"
+          })
+          return;
+        }
+        if(message.deliveredAt){
+           return;
+        }
         message.deliveredAt = new Date();
 
         await message.save();
@@ -233,6 +311,15 @@ const registerChatSocket = (io) => {
           socket.emit("error" , {
             message : "You're not part of this conversation..."
           })
+          return;
+        }
+        if(message.sender.toString() === socket.userId.toString()){
+          socket.emit("error",{
+            message : "Not Allowed By Sender!"
+          })
+          return;
+        }
+        if(message.deliveredAt){
           return;
         }
         message.seenAt = new Date();
