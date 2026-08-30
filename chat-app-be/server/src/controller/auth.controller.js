@@ -81,7 +81,7 @@ const login = async (req, res) => {
   console.log(error.message);
   res.status(500).json({
     success: false,
-    message : "Server Error"
+    message : "Login  Error"
   })
 }
 } 

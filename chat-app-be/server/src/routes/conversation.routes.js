@@ -88,14 +88,14 @@ router.get("/",protect,async (req,res) => {
               }
             }
           ],
-          as : "lastMessage"
+          as : "lastMessageData"
         }
       },
       {
         $set : {
           lastMessage : {
             $arrayElemAt : [
-              "lastMessage",
+              "lastMessageData",
               0
             ]
           }
