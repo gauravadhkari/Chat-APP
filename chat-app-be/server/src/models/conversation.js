@@ -20,7 +20,7 @@ const ConversationSchema = new mongoose.Schema(
     },
     lastMessage : {
       type : mongoose.Schema.Types.ObjectId,
-      ref : "message",
+      ref : "Message",
       default : null,
     }
   },

@@ -28,7 +28,7 @@ router.get("/",protect,async (req,res) => {
           from : "users",
           localField : "participants",
           foreignField : "_id",
-          as :"particpants"
+          as :"participants"
         }
       },
       {
@@ -95,7 +95,7 @@ router.get("/",protect,async (req,res) => {
         $set : {
           lastMessage : {
             $arrayElemAt : [
-              "lastMessageData",
+              "$lastMessageData",
               0
             ]
           }
@@ -123,13 +123,13 @@ router.get("/",protect,async (req,res) => {
                     },
                     {
                       $ne : [
-                        "sender",
+                        "$sender",
                         userId
                       ]
                     },
                     {
                       $eq : [
-                        "seenAt",
+                        "$seenAt",
                         null
                       ]
                     }
@@ -168,7 +168,7 @@ router.get("/",protect,async (req,res) => {
       },
       {
         $sort : {
-          updatedAt : -1
+          lastMessageAt : -1
         }
       }
     ]);

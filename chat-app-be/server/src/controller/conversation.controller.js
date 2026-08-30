@@ -45,13 +45,13 @@ const createConversation = async (req, res) => {
       })
     }
     const conversationKey = [currentUserId.toString() , userId.toString()].sort().join("_");
-    const conversation = await Conversation.findOne({
+    let conversation = await Conversation.findOne({
       conversationKey,
     }).populate("participants","name email");
 
     if(conversation){
-      return res.status(401).json({
-        success : false,
+      return res.status(200).json({
+        success : true,
         message : "Conversation already exists...",
         conversation
       })
