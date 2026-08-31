@@ -85,7 +85,12 @@ export default function ChatWindow({ onBack }) {
   const isBlocked = blockedUserIds.has(otherId);
 
   let lastDay = null;
-
+  const lastOwnMessageId = [...messages]
+  .reverse()
+  .find((message) => {
+    const senderId = message.sender?._id || message.sender;
+    return senderId === user._id;
+  })?._id;
   return (
     <div
       className="glass-panel chat-panel"
@@ -206,7 +211,11 @@ export default function ChatWindow({ onBack }) {
           return (
             <div key={m._id} style={{ display: "flex", flexDirection: "column" }}>
               {showDivider && <div className="day-chip">{day}</div>}
-              <MessageBubble message={m} isOwn={isOwn} />
+              <MessageBubble
+              message={m}
+              isOwn={isOwn}
+              showStatus={m._id === lastOwnMessageId}
+              />
             </div>
           );
         })}

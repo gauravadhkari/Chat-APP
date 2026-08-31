@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { formatTime } from "../utils/format";
 import { useChat } from "../context/ChatContext";
-
-export default function MessageBubble({ message, isOwn }) {
+import { CheckCheck } from "lucide-react";
+export default function MessageBubble({ message, isOwn,showStatus }) {
   const { editMessage, deleteMessage } = useChat();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.content);
@@ -15,7 +15,11 @@ export default function MessageBubble({ message, isOwn }) {
     setMenuOpen(false);
   };
 
-  const status = message.seenAt ? "Seen" : message.deliveredAt ? "Delivered" : "Sent";
+  const status = message.seenAt
+  ? "Seen"
+  : message.deliveredAt
+  ? "Delivered"
+  : null;
   const statusMark = message.seenAt ? "✓✓" : message.deliveredAt ? "✓✓" : "✓";
 
   return (
@@ -147,14 +151,24 @@ export default function MessageBubble({ message, isOwn }) {
       >
         <span>{formatTime(message.createdAt)}</span>
         {message.edited && <span>· edited</span>}
-        {isOwn && (
-          <span
-            title={status}
-            style={{ color: message.seenAt ? "var(--accent)" : "var(--text-faint)", letterSpacing: "-1px" }}
-          >
-            · {statusMark}
-          </span>
-        )}
+        {isOwn && showStatus && status && (
+  <span
+    title={status}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 3,
+      color: message.seenAt
+        ? "var(--accent)"
+        : "var(--text-faint)",
+      fontSize: 10.5,
+      transition: "color 0.2s ease",
+    }}
+  >
+    <CheckCheck size={13} strokeWidth={2.2} />
+    {status}
+  </span>
+)}
       </div>
     </div>
   );

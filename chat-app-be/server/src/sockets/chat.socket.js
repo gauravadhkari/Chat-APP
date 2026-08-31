@@ -206,6 +206,8 @@ const registerChatSocket = (io) => {
         const otherParticipant = conversation.participants.find(
           (participant) => participant.toString() !== userId.toString()
         )
+        const receiverId = otherParticipant.toString();
+        const receiverOnline = onlineUsers.has(receiverId)
         const otherUser = await User.findById(otherParticipant);
         const hasBlocked = currentUser.blockedUsers.some(
           (id) => id.toString() === otherParticipant.toString()
@@ -232,6 +234,7 @@ const registerChatSocket = (io) => {
           conversation : conversationId ,
           sender : userId,
           content,
+          deliveredAt : receiverOnline ? new Date() : null,
         });
         await Conversation.findByIdAndUpdate(conversationId , {
           lastMessageAt : message.createdAt,
