@@ -494,7 +494,7 @@ const registerChatSocket = (io) => {
           })
           return;
         }
-        const now = new Date();
+        const deliverednow = new Date();
         await Message.updateMany({
           conversation : conversationId,
           sender : { $ne : socket.userId },
@@ -503,10 +503,10 @@ const registerChatSocket = (io) => {
         },
          {
           $set : {
-            deliveredAt : now,
-            seenAt : now,
+            deliveredAt : deliverednow,
           }
          });
+         const seenNow = new Date()
         const result  =  await Message.updateMany({
           conversation : conversationId,
           sender : {
@@ -516,8 +516,7 @@ const registerChatSocket = (io) => {
         },
       {
         $set : {
-          deliveredAt : now,
-          seenAt : now,
+          seenAt : seenNow,
         },
       });
       console.log("Modified Count :",result.modifiedCount);
