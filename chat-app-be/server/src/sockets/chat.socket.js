@@ -55,6 +55,12 @@ const registerChatSocket = (io) => {
     //              ///USER JOINED CONVERSATION///                 //
     socket.on("joinConversation", async (conversationId) => {
      try{
+       if(!isValidObjectId(conversationId)){
+        socket.emit("error", {
+          message : "Invalid Id!"
+        })
+        return;
+       }
        const conversation = await Conversation.findById(conversationId);
        if(!conversation){
         socket.emit("error",{
@@ -463,6 +469,12 @@ const registerChatSocket = (io) => {
       try{
         const {conversationId} = data;
         console.log("Mark Conversation as Read :", conversationId);
+        if(!isValidObjectId(conversationId)){
+          socket.emit("error", {
+            message : "Invalid Id!"
+          })
+          return;
+        }
         const conversation = await Conversation.findById(conversationId);
         if(!conversation){
           socket.emit("error", {
@@ -470,6 +482,7 @@ const registerChatSocket = (io) => {
           })
           return;
         }
+        
         const isParticipant = conversation.participants.some( (participant) => 
         participant.toString() === socket.userId.toString())
         if(!isParticipant){
@@ -478,6 +491,19 @@ const registerChatSocket = (io) => {
           })
           return;
         }
+        const now = new Date();
+        await Message.updateMany({
+          conversation : conversationId,
+          sender : { $ne : socket.userId },
+          deliveredAt : null,
+          seenAt : null
+        },
+         {
+          $set : {
+            deliveredAt : now,
+            seenAt : now,
+          }
+         });
         const result  =  await Message.updateMany({
           conversation : conversationId,
           sender : {
@@ -487,7 +513,8 @@ const registerChatSocket = (io) => {
         },
       {
         $set : {
-          seenAt : new Date(),
+          deliveredAt : now,
+          seenAt : now,
         },
       });
       console.log("Modified Count :",result.modifiedCount);

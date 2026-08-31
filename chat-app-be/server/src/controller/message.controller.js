@@ -1,6 +1,7 @@
 const Message = require("../models/message")
 const Conversation = require("../models/conversation")
-const User = require("../models/User")
+const User = require("../models/User");
+const { isValidObjectId, isValidMessageContent } = require("../utils/validation");
 
 const sendMessage = async (req,res) => {
 
@@ -11,6 +12,18 @@ const sendMessage = async (req,res) => {
       return res.status(400).json({
         success : false,
         message : "Conversation Id and content are required.."
+      })
+    }
+    if(!isValidObjectId(conversationId)){
+      return res.status(400).json({
+        success : false,
+        message : "Invalid Conversation Id!"
+      })
+    }
+    if(!isValidMessageContent(content)){
+      return res.status(400).json({
+        success : false,
+        message : "Nothing to Send!"
       })
     }
     const conversation = await Conversation.findById(conversationId);

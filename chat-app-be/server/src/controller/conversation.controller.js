@@ -83,7 +83,17 @@ const createConversation = async (req, res) => {
       conversation
     })
   }catch(error){
-    console.log(error.message);
+    if(error.code === 11000){
+      const existingConversation = await Conversation.findOne({
+        conversationKey,
+      }).populate("participants", "name email");
+
+      return res.status(200).json({
+        success : true,
+        message : "Conversation Already Created!",
+        conversation : existingConversation
+      })
+    }
 
     res.status(500).json({
       success : false,
