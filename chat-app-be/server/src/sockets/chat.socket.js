@@ -319,10 +319,14 @@ const registerChatSocket = (io) => {
           })
           return;
         }
-        if(message.deliveredAt){
+        if(message.seenAt){
           return;
         }
-        message.seenAt = new Date();
+        const now = new Date();
+        if(!message.deliveredAt){
+          message.deliveredAt = now;
+        }
+        message.seenAt = now;
         await message.save();
 
         console.log("MESSAGE MARKED AS SEEN:", {

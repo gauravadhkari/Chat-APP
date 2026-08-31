@@ -58,6 +58,10 @@ const sendMessage = async (req,res) => {
       conversation:conversationId,
       sender : senderId,
       content,
+    });
+    await Conversation.findByIdAndUpdate(conversationId, {
+      lastMessage : message._id,
+      lastMessageAt : message.createdAt
     })
     res.status(201).json({
       success : true,

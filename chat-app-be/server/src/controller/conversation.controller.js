@@ -1,5 +1,6 @@
 const Conversation = require("../models/conversation")
-const User = require("../models/User")
+const User = require("../models/User");
+const { isValidObjectId } = require("../utils/validation");
 
 
 ////////////////////////////////////////////////////////////
@@ -11,6 +12,12 @@ const createConversation = async (req, res) => {
       return res.status(401).json({
         success : false,
         message : "User id not given..."
+      })
+    }
+    if(!isValidObjectId(userId)){
+      return res.status(400).json({
+        success : false,
+        message : "Wrong User Id!"
       })
     }
     console.log(currentUserId)
@@ -25,6 +32,12 @@ const createConversation = async (req, res) => {
       return res.status(401).json({
         success : false,
         message : "User not found..."
+      })
+    }
+    if(!isValidObjectId(otherUser)){
+      return res.status(400).json({
+        success : false,
+        message : "Wrong User Id!"
       })
     }
     const currentUser = await User.findById(currentUserId);

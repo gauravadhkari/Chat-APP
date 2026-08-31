@@ -10,7 +10,7 @@ const socketAuth = async (socket,next) => {
     const decoded = await jwt.verify(token,process.env.JWT_SECRET);
     const userExists = await User.exists({_id : decoded.userId});
     if(!userExists){
-      next(new Error("User not Exists!"))
+      return next(new Error("User not Exists!"))
     }
     socket.userId = decoded.userId;
     next();
