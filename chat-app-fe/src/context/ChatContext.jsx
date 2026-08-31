@@ -123,6 +123,7 @@ export function ChatProvider({ children }) {
     if (!socket) return;
 
     const onNewMessage = (message) => {
+      console.log("🔥 NEW MESSAGE RECEIVED:", message);
       if (activeConversationRef.current?._id === message.conversation) {
         setMessages((prev) => [...prev, message]);
         socket.emit("messageDelivered", message._id);
