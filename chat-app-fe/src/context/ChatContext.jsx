@@ -132,11 +132,17 @@ export function ChatProvider({ children }) {
         }
       }
       setConversations((prev) => {
-  const index = prev.findIndex(
-    (c) => c._id === message.conversation
-  );
+  const conversationId =
+  message.conversation?._id || message.conversation;
 
-  if (index === -1) return prev;
+const index = prev.findIndex(
+  (c) => String(c._id) === String(conversationId)
+);
+
+if (index === -1) {
+  loadConversations();
+  return prev;
+}
 
   const conversation = prev[index];
 
