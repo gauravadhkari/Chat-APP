@@ -23,7 +23,6 @@ export default function ConversationItem({ conversation, active, onClick }) {
           <span
             style={{
               fontWeight: hasUnread ? 700 : 600,
-              fontWeight: 600,
               fontSize: 14.5,
               fontFamily: "var(--font-display)",
               letterSpacing: "-0.01em",
@@ -41,7 +40,6 @@ export default function ConversationItem({ conversation, active, onClick }) {
                 : "var(--text-faint)",
                 fontWeight: hasUnread ? 600 : 400,
                 fontSize: 10.5,
-                color: "var(--text-faint)",
                 fontFamily: "var(--font-mono)",
                 flexShrink: 0,
               }}

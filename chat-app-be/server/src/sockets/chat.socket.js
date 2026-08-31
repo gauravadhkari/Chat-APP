@@ -36,6 +36,7 @@ const registerChatSocket = (io) => {
       onlineUsers.set(userId, new Set());
     }
     onlineUsers.get(userId).add(socket.id);
+    socket.join(`user:${userId}`);
     console.log("Online Users :",onlineUsers)
     
     if(wasOffline){
@@ -240,7 +241,10 @@ const registerChatSocket = (io) => {
           lastMessageAt : message.createdAt,
           lastMessage : message._id,
         });
-        io.to(conversationId).emit("newMessage",message);
+        io
+        .to(`user:${userId.toString()}`)
+        .to(`user:${receiverId}`)
+        .emit("newMessage", message);
       }catch(error){
         console.error(error)
         socket.emit("error",{
