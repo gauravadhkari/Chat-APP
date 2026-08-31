@@ -8,9 +8,28 @@ const onlineUsers =new Map();
 
 const registerChatSocket = (io) => {
   //               ///CONNECTION START///                  //
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
+    try{
     console.log("User connected : ",socket.id);
-    
+    const conversations = await Conversation.find({
+      participants : socket.userId
+    }).select("_id");
+
+    const conversationIds = conversations.map(
+      (conversation) => conversation._id
+    )
+    await Message.updateMany(
+      {
+        conversation : {$in : conversationIds},
+        sender : {$ne  : socket.userId},
+        deliveredAt : null
+      },
+      {
+      $set : {
+        deliveredAt : new Date()
+      }
+      }
+    );
     const userId = socket.userId.toString();
     let wasOffline = !onlineUsers.has(userId);
     if(!onlineUsers.has(userId)){
@@ -28,6 +47,10 @@ const registerChatSocket = (io) => {
     (id) => id !== userId
     );
     socket.emit("onlineUsers", { userIds: alreadyOnlineUserIds });
+
+    } catch(error){
+    console.error("Connection Delivery Error:",error)
+    }
     
     //              ///USER JOINED CONVERSATION///                 //
     socket.on("joinConversation", async (conversationId) => {
