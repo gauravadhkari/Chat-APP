@@ -94,6 +94,13 @@ export function ChatProvider({ children }) {
   const openConversation = useCallback(
     (conversation) => {
       setActiveConversation(conversation);
+      setConversations((prev) =>
+  prev.map((c) =>
+    c._id === conversation._id
+      ? { ...c, unreadCounts: 0 }
+      : c
+  )
+);
       setMessages([]);
       setTypingUserIds(new Set());
       if (conversation?._id) {
@@ -123,9 +130,43 @@ export function ChatProvider({ children }) {
           socket.emit("messageSeen", message._id);
         }
       }
-      setConversations((prev) =>
-        prev.map((c) => (c._id === message.conversation ? { ...c, lastMessage: message } : c))
-      );
+      setConversations((prev) => {
+  const index = prev.findIndex(
+    (c) => c._id === message.conversation
+  );
+
+  if (index === -1) return prev;
+
+  const conversation = prev[index];
+
+  const isMine =
+    message.sender?._id === user?._id ||
+    message.sender === user?._id;
+
+  const isChatOpen =
+    activeConversationRef.current?._id === message.conversation;
+
+  const updatedConversation = {
+    ...conversation,
+
+    lastMessage: message,
+    lastMessageAt: message.createdAt,
+
+    unreadCounts:
+      !isMine && !isChatOpen
+        ? (conversation.unreadCounts || 0) + 1
+        : conversation.unreadCounts || 0,
+  };
+
+  const remaining = prev.filter(
+    (c) => c._id !== message.conversation
+  );
+
+  return [
+    updatedConversation,
+    ...remaining
+  ];
+});
     };
 
     const onTyping = ({ userId, conversationId }) => {
@@ -155,11 +196,28 @@ export function ChatProvider({ children }) {
     const onMessageDeleted = ({ messageId }) => {
       setMessages((prev) => prev.filter((m) => m._id !== messageId));
     };
-    const onConversationRead = ({ conversation }) => {
-      setMessages((prev) =>
-        prev.map((m) => (m.conversation === conversation ? { ...m, seenAt: m.seenAt || new Date().toISOString() } : m))
-      );
-    };
+    const onConversationRead = ({ conversation, userId }) => {
+  setMessages((prev) =>
+    prev.map((m) =>
+      m.conversation === conversation
+        ? {
+            ...m,
+            seenAt: m.seenAt || new Date().toISOString(),
+          }
+        : m
+    )
+  );
+
+  if (userId === user?._id) {
+    setConversations((prev) =>
+      prev.map((c) =>
+        c._id === conversation
+          ? { ...c, unreadCounts: 0 }
+          : c
+      )
+    );
+  }
+};
     const onSocketError = (err) => {
       console.error("Socket error:", err?.message);
     };
