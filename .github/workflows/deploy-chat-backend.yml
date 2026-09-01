@@ -1,0 +1,72 @@
+name: Chat Backend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "chat-app-be/**"
+      - ".github/workflows/deploy-chat-backend.yml"
+
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: Check Backend
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: chat-app-be/server
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: chat-app-be/server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check JavaScript syntax
+        run: find src -type f -name "*.js" -print0 | xargs -0 -n1 node --check
+
+
+  deploy:
+    name: Deploy to EC2
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/github_actions_ec2
+          chmod 600 ~/.ssh/github_actions_ec2
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy backend
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_APP_DIR: ${{ secrets.EC2_APP_DIR }}
+
+        run: |
+          ssh -i ~/.ssh/github_actions_ec2 "$EC2_USER@$EC2_HOST" "
+            set -e
+            cd '$EC2_APP_DIR'
+            git pull --ff-only origin main
+            npm ci --omit=dev
+            pm2 restart chat-app-be
+            sleep 2
+            curl --fail http://127.0.0.1:5001/health
+          "

@@ -15,6 +15,10 @@ export default function ConversationItem({ conversation, active, onClick }) {
   const last = conversation.lastMessage;
   const unreadCount = conversation.unreadCounts || 0;
   const hasUnread = unreadCount > 0;
+  const lastSenderId = last?.sender?._id || last?.sender;
+
+const isLastMessageMine =
+  last && String(lastSenderId) === String(user._id);
   return (
     <button onClick={onClick} className={`convo-item ${active ? "active" : ""}`}>
       <Avatar name={name} online={online} size={44} />
@@ -34,9 +38,7 @@ export default function ConversationItem({ conversation, active, onClick }) {
             <span
               style={{
                 color: hasUnread
-                ? "var(--text-primary)"
-                : last
-                ? "var(--text-muted)"
+                ? "var(--accent)"
                 : "var(--text-faint)",
                 fontWeight: hasUnread ? 600 : 400,
                 fontSize: 10.5,
@@ -72,7 +74,24 @@ export default function ConversationItem({ conversation, active, onClick }) {
       whiteSpace: "nowrap",
     }}
   >
-    {last ? last.content : "No messages yet"}
+   {last ? (
+  <>
+    {isLastMessageMine && (
+      <span
+        style={{
+          color: "var(--text-faint)",
+          fontWeight: 500,
+        }}
+      >
+        You:{" "}
+      </span>
+    )}
+
+    {last.content}
+  </>
+) : (
+  "No messages yet"
+)}
   </div>
 
   {hasUnread && (
