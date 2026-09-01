@@ -18,7 +18,7 @@ app.use(express.json({
 
 app.get("/", (req,res) => {
   res.json({
-    message:"Chat Api is running...."
+    message:"Chat Api is running in EC2...."
   })
 })
 app.get("/health", (req, res) => {
