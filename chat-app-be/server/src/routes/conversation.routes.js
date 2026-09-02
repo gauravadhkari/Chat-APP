@@ -47,6 +47,9 @@ router.get("/",protect,async (req,res) => {
                     "$conversation",
                     "$$conversationId"
                    ]
+                },
+                isDeleted : {
+                  $ne : true,
                 }
               }
             },
@@ -134,6 +137,9 @@ router.get("/",protect,async (req,res) => {
                       ]
                     }
                   ]
+                },
+                isDeleted : {
+                  $ne : true,
                 }
               }
             },
