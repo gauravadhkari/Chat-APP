@@ -460,9 +460,29 @@ const registerChatSocket = (io) => {
           return;
         }
         const conversationId = message.conversation.toString();
-        await Message.findByIdAndDelete(messageId);
+        message.isDeleted = true;
+        message.deletedAt = new Date();
+        message.content = "This message was deleted";
+
+        await message.save();
+
+        const conversation = await Conversation.findById(conversationId);
+
+        if(conversation.lastMessage && conversation.lastMessage.toString() === message._id.toString()){
+          const previousMessage = await Message.findOne({
+            conversation : conversationId,
+            isDeleted : false,
+          }).sort({createdAt : -1});
+
+          conversation.lastMessage = previousMessage ? previousMessage._id : null;
+          conversation.lastMessageAt = previousMessage ? previousMessage.createdAt : null;
+
+          await conversation.save();
+        }
         io.to(conversationId).emit("messageDeleted", {
-          messageId : messageId,
+          messageId : message._id,
+          deletedAt : message.deletedAt,
+          content : message.content,
         })
       }catch(error){
         console.error("Delete Error: ",error);

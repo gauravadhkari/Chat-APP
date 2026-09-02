@@ -23,6 +23,14 @@ const messageSchema = new mongoose.Schema({
   seenAt : {
     type : Date,
     default : null,
+  },
+  isDeleted : {
+    type : Boolean,
+    default : null,
+  },
+  deletedAt : {
+    type : Date,
+    default : null,
   }
 },
  {
