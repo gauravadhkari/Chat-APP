@@ -472,27 +472,43 @@ const registerChatSocket = (io) => {
         message.isDeleted = true;
         message.deletedAt = new Date();
         message.content = "This message was deleted";
-
+        const wasUnread = !message.seenAt;
         await message.save();
 
         const conversation = await Conversation.findById(conversationId);
 
+        let lastMessageChanged = false;
+        let newLastMessage = null;
+
         if(conversation.lastMessage && conversation.lastMessage.toString() === message._id.toString()){
+           lastMessageChanged = true;
           const previousMessage = await Message.findOne({
             conversation : conversationId,
-            isDeleted : false,
-          }).sort({createdAt : -1});
-
+            isDeleted : {$ne : true},
+          }).sort({createdAt : -1})
+          .populate("sender" , "_id name");
+         
           conversation.lastMessage = previousMessage ? previousMessage._id : null;
           conversation.lastMessageAt = previousMessage ? previousMessage.createdAt : null;
 
           await conversation.save();
+          newLastMessage = previousMessage;
         }
-        io.to(conversationId).emit("messageDeleted", {
-          messageId : message._id,
-          deletedAt : message.deletedAt,
-          content : message.content,
-        })
+        const deletePayload = {
+        messageId: message._id,
+        deletedAt: message.deletedAt,
+        conversationId,
+        lastMessageChanged,
+        newLastMessage,
+        senderId : message.sender.toString(),
+        wasUnread,
+       };
+        conversation.participants.forEach((participantId) => {
+         io.to(`user:${participantId.toString()}`).emit(
+         "messageDeleted",
+         deletePayload
+        );
+        });
       }catch(error){
         console.error("Delete Error: ",error);
         socket.emit("error",{

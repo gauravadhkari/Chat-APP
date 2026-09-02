@@ -200,9 +200,58 @@ if (index === -1) {
     const onMessageEdited = ({ messageId, content }) => {
       setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, content, edited: true } : m)));
     };
-    const onMessageDeleted = ({ messageId }) => {
-      setMessages((prev) => prev.filter((m) => m._id !== messageId));
-    };
+    const onMessageDeleted = ({
+    messageId,
+    deletedAt,
+    conversationId,
+    lastMessageChanged,
+    newLastMessage,
+    senderId,
+    wasUnread,
+}) => {
+  setMessages((prev) =>
+    prev.map((m) =>
+      String(m._id) === String(messageId)
+        ? {
+            ...m,
+            content: "This message was deleted",
+            isDeleted: true,
+            deletedAt,
+            edited: false,
+          }
+        : m
+    )
+  );
+
+  setConversations((prev) =>
+    prev.map((conversation) => {
+      if (String(conversation._id) !== String(conversationId)) {
+        return conversation;
+      }
+
+      const updated = { ...conversation };
+
+      if (lastMessageChanged) {
+        updated.lastMessage = newLastMessage;
+        updated.lastMessageAt =
+          newLastMessage?.createdAt || null;
+      }
+
+      // Deleted message was unread for THIS user
+      if (
+        wasUnread &&
+        String(senderId) !== String(user?._id)
+      ) {
+        updated.unreadCounts = Math.max(
+          (conversation.unreadCounts || 0) - 1,
+          0
+        );
+      }
+
+      return updated;
+    })
+  );
+};
     const onConversationRead = ({ conversation, userId }) => {
   setMessages((prev) =>
     prev.map((m) =>

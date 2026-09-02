@@ -83,12 +83,21 @@ export default function MessageBubble({ message, isOwn,showStatus }) {
                 </button>
               </div>
             </div>
-          ) : (
-            message.content
-          )}
+          ) : message.isDeleted ? (
+  <span
+    style={{
+      fontStyle: "italic",
+      opacity: 0.65,
+    }}
+  >
+    This message was deleted
+  </span>
+) : (
+  message.content
+)}
         </div>
 
-        {isOwn && !editing && (
+        {isOwn && !editing && !message.isDeleted &&  (
           <button
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Message options"
