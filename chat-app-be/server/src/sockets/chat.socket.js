@@ -416,6 +416,12 @@ const registerChatSocket = (io) => {
           })
           return;
         }
+         if(message.isDeleted === true){
+          socket.emit("error", {
+            message : "You can't edit deleted message!"
+          });
+          return;
+        }
         message.content = content;
         await message.save();
         io.to(message.conversation.toString()).emit("messageEdited", {
@@ -460,6 +466,9 @@ const registerChatSocket = (io) => {
           return;
         }
         const conversationId = message.conversation.toString();
+        if(message.isDeleted === true){
+          return;
+        }
         message.isDeleted = true;
         message.deletedAt = new Date();
         message.content = "This message was deleted";
