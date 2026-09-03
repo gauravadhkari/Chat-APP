@@ -22,15 +22,7 @@ export function ChatProvider({ children }) {
   // (no "me" / profile endpoint), so this only tracks blocks/unblocks made
   // during this session rather than reflecting true server state on load.
   const [blockedUserIds, setBlockedUserIds] = useState(() => new Set());
-  const startReply = useCallback((message) => {
-  if (message?.isDeleted) return;
-
-  setReplyingTo(message);
-}, []);
-
-const cancelReply = useCallback(() => {
-  setReplyingTo(null);
-}, []);
+  
   const blockUser = useCallback(async (userId) => {
     await api.post(`/users/block/${userId}`);
     setBlockedUserIds((prev) => new Set(prev).add(userId));
@@ -55,6 +47,15 @@ const cancelReply = useCallback(() => {
   // the backend for the same path; Express only ever runs the first one
   // (getMyConversation), which responds with { conversation: [...] } —
   // note the singular, unenriched key (no lastMessage/unreadCounts).
+  const startReply = useCallback((message) => {
+  if (message?.isDeleted) return;
+
+  setReplyingTo(message);
+  }, []);
+
+  const cancelReply = useCallback(() => {
+  setReplyingTo(null);
+  }, []); 
   const loadConversations = useCallback(async () => {
     setLoadingConversations(true);
     try {
@@ -362,9 +363,6 @@ if (index === -1) {
   }, [socket, user]);
 
   const sendMessage = useCallback(
-    (content) => {
-      if (!activeConversation?._id || !content.trim() || !socket) return;
-      const sendMessage = useCallback(
   (content) => {
     if (!activeConversation?._id || !content.trim() || !socket) {
       return;
@@ -373,7 +371,6 @@ if (index === -1) {
     socket.emit("sendMessage", {
       conversationId: activeConversation._id,
       content: content.trim(),
-
       replyTo: replyingTo?._id || null,
     });
 
@@ -381,10 +378,6 @@ if (index === -1) {
   },
   [activeConversation, socket, replyingTo]
 );
-    },
-    [activeConversation, socket]
-  );
-
   const editMessage = useCallback(
     (messageId, content) => {
       socket?.emit("editMessage", { messageId, content });
@@ -417,6 +410,9 @@ if (index === -1) {
         activeConversation,
         openConversation,
         messages,
+        replyingTo,
+        startReply,
+        cancelReply,
         loadingMessages,
         hasMore,
         loadMoreMessages,
@@ -424,9 +420,6 @@ if (index === -1) {
         sendMessage,
         editMessage,
         deleteMessage,
-        replyingTo,
-        startReply,
-        cancelReply,
         emitTyping,
         emitStopTyping,
         blockedUserIds,
