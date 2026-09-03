@@ -13,6 +13,7 @@ export function ChatProvider({ children }) {
   const [loadingConversations, setLoadingConversations] = useState(false);
   const [activeConversation, setActiveConversation] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
@@ -21,7 +22,15 @@ export function ChatProvider({ children }) {
   // (no "me" / profile endpoint), so this only tracks blocks/unblocks made
   // during this session rather than reflecting true server state on load.
   const [blockedUserIds, setBlockedUserIds] = useState(() => new Set());
+  const startReply = useCallback((message) => {
+  if (message?.isDeleted) return;
 
+  setReplyingTo(message);
+}, []);
+
+const cancelReply = useCallback(() => {
+  setReplyingTo(null);
+}, []);
   const blockUser = useCallback(async (userId) => {
     await api.post(`/users/block/${userId}`);
     setBlockedUserIds((prev) => new Set(prev).add(userId));
@@ -103,6 +112,7 @@ export function ChatProvider({ children }) {
 );
       setMessages([]);
       setTypingUserIds(new Set());
+      setReplyingTo(null);
       if (conversation?._id) {
         loadMessages(conversation._id, 1);
         socket?.emit("joinConversation", conversation._id);
@@ -197,9 +207,38 @@ if (index === -1) {
     const onMessageSeen = ({ messageId, seenAt }) => {
       setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, seenAt } : m)));
     };
+    
     const onMessageEdited = ({ messageId, content }) => {
-      setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, content, edited: true } : m)));
-    };
+  setMessages((prev) =>
+    prev.map((m) => {
+
+      // Actual edited message
+      if (String(m._id) === String(messageId)) {
+        return {
+          ...m,
+          content,
+          edited: true,
+        };
+      }
+
+      // Update quoted copies too
+      if (
+        m.replyTo &&
+        String(m.replyTo._id) === String(messageId)
+      ) {
+        return {
+          ...m,
+          replyTo: {
+            ...m.replyTo,
+            content,
+          },
+        };
+      }
+
+      return m;
+    })
+  );
+};
     const onMessageDeleted = ({
     messageId,
     deletedAt,
@@ -210,18 +249,39 @@ if (index === -1) {
     wasUnread,
 }) => {
   setMessages((prev) =>
-    prev.map((m) =>
-      String(m._id) === String(messageId)
-        ? {
-            ...m,
-            content: "This message was deleted",
-            isDeleted: true,
-            deletedAt,
-            edited: false,
-          }
-        : m
-    )
-  );
+  prev.map((m) => {
+
+    // Actual deleted message
+    if (String(m._id) === String(messageId)) {
+      return {
+        ...m,
+        content: "This message was deleted",
+        isDeleted: true,
+        deletedAt,
+        edited: false,
+      };
+    }
+
+    // Messages replying to the deleted message
+    if (
+      m.replyTo &&
+      String(m.replyTo._id) === String(messageId)
+    ) {
+      return {
+        ...m,
+        replyTo: {
+          ...m.replyTo,
+          content: "This message was deleted",
+          isDeleted: true,
+          deletedAt,
+        },
+      };
+    }
+
+    return m;
+  })
+);
+    
 
   setConversations((prev) =>
     prev.map((conversation) => {
@@ -304,7 +364,23 @@ if (index === -1) {
   const sendMessage = useCallback(
     (content) => {
       if (!activeConversation?._id || !content.trim() || !socket) return;
-      socket.emit("sendMessage", { conversationId: activeConversation._id, content: content.trim() });
+      const sendMessage = useCallback(
+  (content) => {
+    if (!activeConversation?._id || !content.trim() || !socket) {
+      return;
+    }
+
+    socket.emit("sendMessage", {
+      conversationId: activeConversation._id,
+      content: content.trim(),
+
+      replyTo: replyingTo?._id || null,
+    });
+
+    setReplyingTo(null);
+  },
+  [activeConversation, socket, replyingTo]
+);
     },
     [activeConversation, socket]
   );
@@ -348,6 +424,9 @@ if (index === -1) {
         sendMessage,
         editMessage,
         deleteMessage,
+        replyingTo,
+        startReply,
+        cancelReply,
         emitTyping,
         emitStopTyping,
         blockedUserIds,

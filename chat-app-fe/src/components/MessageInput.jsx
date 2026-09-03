@@ -3,7 +3,7 @@ import { useChat } from "../context/ChatContext";
 import EmojiPicker from "./EmojiPicker";
 
 export default function MessageInput({ disabled = false, disabledReason = "" }) {
-  const { sendMessage, emitTyping, emitStopTyping } = useChat();
+  const { sendMessage, emitTyping, emitStopTyping,replyingTo, cancelReply, } = useChat();
   const [value, setValue] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const stopTypingTimeout = useRef(null);
@@ -80,6 +80,64 @@ export default function MessageInput({ disabled = false, disabledReason = "" }) 
 
   return (
     <form onSubmit={submit} style={{ padding: "12px 20px 18px", position: "relative" }}>
+      {replyingTo && (
+  <div
+    className="glass"
+    style={{
+      marginBottom: 8,
+      padding: "9px 12px",
+      borderRadius: 14,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 12,
+    }}
+  >
+    <div
+      style={{
+        minWidth: 0,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          color: "var(--accent)",
+          fontWeight: 600,
+          marginBottom: 2,
+        }}
+      >
+        Replying to {replyingTo.sender?.name || "message"}
+      </div>
+
+      <div
+        style={{
+          fontSize: 12.5,
+          color: "var(--text-muted)",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {replyingTo.content}
+      </div>
+    </div>
+
+    <button
+      type="button"
+      onClick={cancelReply}
+      style={{
+        background: "transparent",
+        border: "none",
+        color: "var(--text-muted)",
+        fontSize: 18,
+        cursor: "pointer",
+      }}
+      aria-label="Cancel reply"
+    >
+      ×
+    </button>
+  </div>
+)}
       <div
         className="glass"
         style={{
@@ -110,7 +168,6 @@ export default function MessageInput({ disabled = false, disabledReason = "" }) 
         {pickerOpen && (
           <EmojiPicker onSelect={(emoji) => insertEmoji(emoji)} onClose={() => setPickerOpen(false)} />
         )}
-
         <textarea
           ref={textareaRef}
           value={value}

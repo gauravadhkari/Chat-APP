@@ -3,7 +3,7 @@ import { formatTime } from "../utils/format";
 import { useChat } from "../context/ChatContext";
 import { CheckCheck } from "lucide-react";
 export default function MessageBubble({ message, isOwn,showStatus }) {
-  const { editMessage, deleteMessage } = useChat();
+  const { editMessage, deleteMessage , startReply, } = useChat();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.content);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -37,6 +37,43 @@ export default function MessageBubble({ message, isOwn,showStatus }) {
     >
       <div style={{ position: "relative" }}>
         <div className={`bubble ${isOwn ? "bubble-own" : "bubble-other"}`}>
+          {message.replyTo && (
+  <div
+    style={{
+      marginBottom: 7,
+      padding: "7px 9px",
+      borderRadius: 9,
+      background: "rgba(0,0,0,0.16)",
+      borderLeft: "3px solid var(--accent)",
+      maxWidth: 260,
+    }}
+  >
+    <div
+      style={{
+        fontSize: 11,
+        fontWeight: 600,
+        color: "var(--accent)",
+        marginBottom: 2,
+      }}
+    >
+      {message.replyTo.sender?.name || "User"}
+    </div>
+
+    <div
+      style={{
+        fontSize: 12,
+        opacity: 0.75,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {message.replyTo.isDeleted
+        ? "This message was deleted"
+        : message.replyTo.content}
+    </div>
+  </div>
+)}
           {editing ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 200 }}>
               <textarea
@@ -97,7 +134,7 @@ export default function MessageBubble({ message, isOwn,showStatus }) {
 )}
         </div>
 
-        {isOwn && !editing && !message.isDeleted &&  (
+        {!editing && !message.isDeleted &&  (
           <button
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Message options"
@@ -105,7 +142,8 @@ export default function MessageBubble({ message, isOwn,showStatus }) {
             style={{
               position: "absolute",
               top: -4,
-              left: -30,
+              left: isOwn ? -30 : "auto",
+              right: isOwn ? "auto" : -30,
               width: 24,
               height: 24,
               borderRadius: "50%",
@@ -123,28 +161,53 @@ export default function MessageBubble({ message, isOwn,showStatus }) {
         )}
 
         {menuOpen && (
-          <div className="menu-pop" style={{ position: "absolute", top: -8, left: -114, zIndex: 5, minWidth: 100 }}>
-            <button
-              className="menu-item"
-              onClick={() => {
-                setEditing(true);
-                setMenuOpen(false);
-              }}
-            >
-              Edit
-            </button>
-            <button
-              className="menu-item"
-              style={{ color: "var(--danger)" }}
-              onClick={() => {
-                deleteMessage(message._id);
-                setMenuOpen(false);
-              }}
-            >
-              Delete
-            </button>
-          </div>
-        )}
+  <div
+    className="menu-pop"
+    style={{
+      position: "absolute",
+      top: -8,
+      left: isOwn ? -114 : "auto",
+      right: isOwn ? "auto" : -114,
+      zIndex: 5,
+      minWidth: 100,
+    }}
+  >
+    <button
+      className="menu-item"
+      onClick={() => {
+        startReply(message);
+        setMenuOpen(false);
+      }}
+    >
+      Reply
+    </button>
+
+    {isOwn && (
+      <>
+        <button
+          className="menu-item"
+          onClick={() => {
+            setEditing(true);
+            setMenuOpen(false);
+          }}
+        >
+          Edit
+        </button>
+
+        <button
+          className="menu-item"
+          style={{ color: "var(--danger)" }}
+          onClick={() => {
+            deleteMessage(message._id);
+            setMenuOpen(false);
+          }}
+        >
+          Delete
+        </button>
+      </>
+    )}
+  </div>
+)}
       </div>
 
       <div

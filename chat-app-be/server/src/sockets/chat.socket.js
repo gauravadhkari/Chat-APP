@@ -169,7 +169,7 @@ const registerChatSocket = (io) => {
           return;
         }
         console.log(data);
-        const {conversationId , content } = data;
+        const {conversationId , content, replyTo = null, } = data;
         console.log(content);
         const userId = socket.userId;
         if(!conversationId || !content || !userId){
@@ -231,12 +231,52 @@ const registerChatSocket = (io) => {
           });
           return;
         }
+        let repliedMessage = null;
+        if(replyTo){
+          if(!isValidObjectId(replyTo)){
+            socket.emit("error",{
+              message:"Not a Valid Id.."
+            })
+            return;
+          }
+          repliedMessage = await Message.findById(replyTo);
+
+          if(!repliedMessage){
+            socket.emit("error",{
+              message : "Message Not Found.."
+            })
+            return;
+          }
+          if(repliedMessage.conversation.toString() !== conversationId.toString()){
+            socket.emit("error",{
+              message : "You can't reply to another conversation.."
+            });
+            return;
+          }
+          if(repliedMessage.isDeleted){
+            socket.emit("error",{
+              message : "Can't Reply to deleted Message.."
+            })
+            return;
+          }
+        }
         const message = await Message.create({
           conversation : conversationId ,
           sender : userId,
           content,
+          replyTo : repliedMessage ? repliedMessage._id : null,
           deliveredAt : receiverOnline ? new Date() : null,
         });
+        const populatedMessage = await Message.findById(message._id)
+        .populate("sender", "_id name email")
+        .populate({
+          path : "replyTo",
+          select : "content sender isDeleted deletedAt",
+          populate : {
+            path : "sender",
+            select : "_id name"
+          },
+        })
         await Conversation.findByIdAndUpdate(conversationId , {
           lastMessageAt : message.createdAt,
           lastMessage : message._id,
@@ -244,7 +284,7 @@ const registerChatSocket = (io) => {
         io
         .to(`user:${userId.toString()}`)
         .to(`user:${receiverId}`)
-        .emit("newMessage", message);
+        .emit("newMessage", populatedMessage);
       }catch(error){
         console.error(error)
         socket.emit("error",{

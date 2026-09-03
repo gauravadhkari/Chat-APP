@@ -53,11 +53,20 @@ router.get("/:conversationId",protect, async(req,res) => {
       };
     }
     const message = await Message.find(query)
+    .populate("sender" , "_id name email")
+    .populate({
+      path : "replyTo",
+      select : "content sender isDeleted deletedAt",
+      populate : {
+        path : "sender",
+        select : "_id name"
+      },
+    })
     .sort({ createdAt : -1 })
     .limit(limit);
     
     const nextCursor = message.length === limit ? message[message.length - 1].createdAt : null;
-    const totalMessages = await Message.countDocuments({ conversation : conversationId});
+  
     res.status(200).json({
       success : true,
       message,
