@@ -27,6 +27,10 @@ export default function ChatWindow({ onBack }) {
   const bottomRef = useRef(null);
   const scrollRef = useRef(null);
   const prevMsgCount = useRef(0);
+  const messageRefs = useRef({});
+  const highlightTimerRef = useRef(null);
+
+  const [highlightedMessageId, setHighlightedMessageId] = useState(null);
 
   useEffect(() => {
     if (messages.length > prevMsgCount.current) {
@@ -91,6 +95,26 @@ export default function ChatWindow({ onBack }) {
     const senderId = message.sender?._id || message.sender;
     return senderId === user._id;
   })?._id;
+  const jumpToMessage = (messageId) => {
+  const target = messageRefs.current[String(messageId)];
+
+  if (!target) {
+    return;
+  }
+
+  target.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
+
+  setHighlightedMessageId(String(messageId));
+
+  clearTimeout(highlightTimerRef.current);
+
+  highlightTimerRef.current = setTimeout(() => {
+    setHighlightedMessageId(null);
+  }, 1600);
+};
   return (
     <div
       className="glass-panel chat-panel"
@@ -209,12 +233,41 @@ export default function ChatWindow({ onBack }) {
           const showDivider = day !== lastDay;
           lastDay = day;
           return (
-            <div key={m._id} style={{ display: "flex", flexDirection: "column" }}>
+            <div
+  key={m._id}
+  ref={(element) => {
+    if (element) {
+      messageRefs.current[String(m._id)] = element;
+    } else {
+      delete messageRefs.current[String(m._id)];
+    }
+  }}
+  style={{
+    display: "flex",
+    flexDirection: "column",
+
+    borderRadius: 12,
+
+    transition:
+      "background 0.25s ease, box-shadow 0.25s ease",
+
+    background:
+      String(highlightedMessageId) === String(m._id)
+        ? "rgba(255,255,255,0.08)"
+        : "transparent",
+
+    boxShadow:
+      String(highlightedMessageId) === String(m._id)
+        ? "0 0 0 1px var(--accent)"
+        : "none",
+  }}
+>
               {showDivider && <div className="day-chip">{day}</div>}
               <MessageBubble
               message={m}
               isOwn={isOwn}
               showStatus={m._id === lastOwnMessageId}
+              onJumpToMessage={jumpToMessage}
               />
             </div>
           );

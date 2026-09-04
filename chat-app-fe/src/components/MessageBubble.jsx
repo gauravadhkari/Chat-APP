@@ -2,7 +2,7 @@ import { useState } from "react";
 import { formatTime } from "../utils/format";
 import { useChat } from "../context/ChatContext";
 import { CheckCheck } from "lucide-react";
-export default function MessageBubble({ message, isOwn,showStatus }) {
+export default function MessageBubble({ message, isOwn,showStatus ,onJumpToMessage}) {
   const { editMessage, deleteMessage , startReply, } = useChat();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.content);
@@ -39,6 +39,11 @@ export default function MessageBubble({ message, isOwn,showStatus }) {
         <div className={`bubble ${isOwn ? "bubble-own" : "bubble-other"}`}>
           {message.replyTo && (
   <div
+    onClick={() =>
+      onJumpToMessage?.(message.replyTo._id)
+    }
+    role="button"
+    tabIndex={0}
     style={{
       marginBottom: 7,
       padding: "7px 9px",
